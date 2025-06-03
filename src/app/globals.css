@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 0 0% 13%; /* #222222 */
+
+    --card: 0 0% 100%; /* #FFFFFF - Default, can be overridden by --allora-card-light/dark */
+    --card-foreground: 0 0% 13%; /* #222222 */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+
+    --primary: 183 100% 27%; /* #008489 */
+    --primary-foreground: 0 0% 98%; /* Light text on primary */
+
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 86.7%; /* #DDDDDD */
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+
+    --radius: 0.5rem; /* Base border radius for Shadcn */
+
+    /* AlloraLens Specific Palette CSS Variables */
+    --allora-bg-light: 0 0% 100%; /* #FFFFFF */
+    --allora-fg-light: 0 0% 13%; /* #222222 */
+    --allora-card-light: 0 0% 96.9%; /* #F7F7F7 */
+    --allora-border-light: 0 0% 86.7%; /* #DDDDDD */
+    --allora-primary-light: 183 100% 27%; /* #008489 */
+
+    --allora-bg-dark: 0 0% 7.1%; /* #121212 */
+    --allora-fg-dark: 0 0% 87.8%; /* #E0E0E0 */
+    --allora-card-dark: 0 0% 11.8%; /* #1E1E1E */
+    --allora-border-dark: 0 0% 20%; /* #333333 */
+    --allora-primary-dark: 177 100% 33%; /* #00A699 */
+  }
+
+  .dark {
+    --background: 0 0% 7.1%; /* #121212 */
+    --foreground: 0 0% 87.8%; /* #E0E0E0 */
+
+    --card: 0 0% 11.8%; /* #1E1E1E */
+    --card-foreground: 0 0% 87.8%; /* #E0E0E0 */
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 177 100% 33%; /* #00A699 */
+    --primary-foreground: 0 0% 98%; /* Should contrast with dark primary */
+
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%; /* #333333 */
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+  }
 }
