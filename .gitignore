@@ -1,4 +1,3 @@
-
 # Dependencies
 /node_modules
 /.pnp
@@ -7,7 +6,7 @@
 
 # Local Environment Variables
 .env.local
-.env.*.local
+.env
 
 # Next.js
 /.next/
@@ -50,3 +49,6 @@ ehthumbs.db
 
 # Optional: Test files coverage directory
 /coverage
+
+# Migration files
+/src/db/migrations/
