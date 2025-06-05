@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/update-predictions",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/update-accuracy",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
