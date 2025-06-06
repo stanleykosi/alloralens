@@ -57,12 +57,12 @@ export default function PredictionCard({
 }: PredictionCardProps) {
   return (
     <motion.div
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+      whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.2 } }}
       className={`
-        bg-gradient-to-br from-allora-card-light to-white dark:from-allora-card-dark dark:to-gray-900
+        bg-allora-card-light dark:bg-allora-card-dark backdrop-blur-md
         border border-allora-border-light dark:border-allora-border-dark
-        shadow-md rounded-xl p-6 transition-all duration-300 ease-in-out
-        hover:shadow-lg hover:border-allora-primary-light dark:hover:border-allora-primary-dark
+        shadow-lg rounded-2xl p-6 transition-all duration-300 ease-in-out
+        hover:shadow-xl hover:border-allora-primary-light dark:hover:border-allora-primary-dark
         ${className}
       `}
     >
@@ -91,7 +91,7 @@ export default function PredictionCard({
                 <Clock className="w-4 h-4 mr-2" />
                 <span>Prediction Generated At</span>
               </div>
-              <p className="text-md text-allora-foreground-light dark:text-allora-foreground-dark">
+              <p className="text-md font-medium text-allora-foreground-light dark:text-allora-foreground-dark">
                 {new Date(prediction.created_at).toLocaleString("en-US", {
                   dateStyle: "medium",
                   timeStyle: "short",

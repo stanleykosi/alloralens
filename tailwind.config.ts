@@ -57,18 +57,27 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom color palette for a modern infometrics look
+        // Custom color palette for a modern, data-driven aesthetic
         allora: {
-          "background-light": "#F8F9FA", // Off-white
-          "background-dark": "#121212", // Very dark grey
-          "card-light": "#FFFFFF", // White
-          "card-dark": "#1E1E1E", // Darker grey
-          "border-light": "#E9ECEF", // Light grey border
-          "border-dark": "#2D2D2D", // Dark grey border
-          "foreground-light": "#212529", // Dark text
-          "foreground-dark": "#E9ECEF", // Light text
-          "primary-light": "#007BFF", // Bright blue
-          "primary-dark": "#00A699", // Teal
+          "bg-start-light": "#E0E7FF", // Light lavender
+          "bg-end-light": "#F0F4F8", // Light steel blue
+          "bg-start-dark": "#0D1117", // Dark slate blue
+          "bg-end-dark": "#1F2937", // Dark grey blue
+
+          "card-light": "rgba(255, 255, 255, 0.6)",
+          "card-dark": "rgba(30, 41, 59, 0.6)",
+
+          "border-light": "rgba(224, 231, 255, 0.8)",
+          "border-dark": "rgba(55, 65, 81, 0.8)",
+
+          "foreground-light": "#111827",
+          "foreground-dark": "#E5E7EB",
+
+          "primary-light": "#3B82F6", // Tailwind blue-500
+          "primary-dark": "#2DD4BF", // Tailwind teal-400
+
+          "accent-light": "#EC4899", // Tailwind pink-500
+          "accent-dark": "#A78BFA", // Tailwind violet-400
         }
       },
       borderRadius: { // Base for Shadcn

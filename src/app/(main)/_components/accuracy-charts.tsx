@@ -59,24 +59,23 @@ function KpiCard({
   icon: React.ElementType
   period: string
 }) {
-  const formattedValue =
-    value !== null && !isNaN(value) ? `${value.toFixed(2)}%` : "N/A"
-
   return (
-    <Card className="bg-background/70 dark:bg-black/30 p-4 shadow-md border-allora-border-light dark:border-allora-border-dark">
-      <CardHeader className="p-0 mb-2 flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <div className="bg-white/10 dark:bg-black/10 backdrop-blur-sm p-4 rounded-lg border border-allora-border-light dark:border-allora-border-dark transition-all duration-300 hover:bg-white/20 dark:hover:bg-black/20">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-sm font-medium text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
           {title}
-        </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="text-2xl font-bold font-mono text-allora-primary-light dark:text-allora-primary-dark">
-          {formattedValue}
-        </div>
-        <p className="text-xs text-muted-foreground">{period}</p>
-      </CardContent>
-    </Card>
+        </h4>
+        <Icon className="w-5 h-5 text-allora-foreground-light/60 dark:text-allora-foreground-dark/60" />
+      </div>
+      <div>
+        <p className="text-3xl font-bold text-allora-primary-light dark:text-allora-primary-dark">
+          {value !== null ? `${value.toFixed(2)}%` : "N/A"}
+        </p>
+        <p className="text-xs text-allora-foreground-light/60 dark:text-allora-foreground-dark/60">
+          {period}
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -172,7 +171,7 @@ export default function AccuracyCharts({
   }
 
   const lineColors: LineSvgProps["colors"] = [
-    effectiveTheme === "dark" ? "#00A699" : "#008489", // Primary accent
+    effectiveTheme === "dark" ? "#2DD4BF" : "#3B82F6", // Use new primary colors
   ]
 
   if (!mounted) {
@@ -208,9 +207,7 @@ export default function AccuracyCharts({
   return (
     <Card
       className={`
-        bg-allora-card-light dark:bg-allora-card-dark 
-        border-allora-border-light dark:border-allora-border-dark 
-        shadow-xl rounded-xl p-4 sm:p-6 ${className}
+        bg-transparent border-none shadow-none p-0 ${className}
       `}
     >
       <CardHeader className="p-0 mb-6">
@@ -301,21 +298,21 @@ export default function AccuracyCharts({
                     style={{
                       background:
                         effectiveTheme === "dark"
-                          ? "rgba(30, 30, 30, 0.85)"
-                          : "rgba(255, 255, 255, 0.85)",
+                          ? "rgba(30, 41, 59, 0.7)"
+                          : "rgba(255, 255, 255, 0.7)",
                       backdropFilter: "blur(4px)",
                       padding: "8px 12px",
                       border: `1px solid ${effectiveTheme === "dark"
-                          ? "rgba(45, 45, 45, 0.9)"
-                          : "rgba(233, 236, 239, 0.9)"
+                          ? "rgba(55, 65, 81, 0.9)"
+                          : "rgba(224, 231, 255, 0.9)"
                         }`,
                       borderRadius: "6px",
                       fontFamily: "var(--font-geist-sans)",
                       fontSize: "12px",
                       color:
                         effectiveTheme === "dark"
-                          ? "rgb(233, 236, 239)"
-                          : "rgb(33, 37, 41)",
+                          ? "#E5E7EB"
+                          : "#111827",
                     }}
                   >
                     <strong>{point.serieId}</strong>
@@ -329,7 +326,7 @@ export default function AccuracyCharts({
               />
             </div>
           ) : (
-            <div className="h-[350px] sm:h-[400px] w-full flex flex-col items-center justify-center bg-allora-background-light dark:bg-allora-background-dark rounded-lg">
+            <div className="h-[350px] sm:h-[400px] w-full flex flex-col items-center justify-center bg-allora-card-light/50 dark:bg-allora-card-dark/50 backdrop-blur-sm rounded-lg border border-allora-border-light dark:border-allora-border-dark">
               <AlertCircle className="w-12 h-12 text-allora-foreground-light/30 dark:text-allora-foreground-dark/30" />
               <p className="mt-4 text-lg font-medium text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
                 No Trend Data Available

@@ -99,7 +99,7 @@ export default async function MainPage() {
       </div>
 
       {/* Main Content Container */}
-      <div className="bg-allora-card-light dark:bg-allora-card-dark border border-allora-border-light dark:border-allora-border-dark rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 space-y-8">
+      <div className="bg-allora-card-light dark:bg-allora-card-dark backdrop-blur-lg border border-allora-border-light dark:border-allora-border-dark rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Predictions Section */}
         <Suspense fallback={<PredictionsDisplaySkeleton />}>
           <PredictionsSection />
