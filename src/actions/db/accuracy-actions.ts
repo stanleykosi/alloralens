@@ -78,18 +78,29 @@ export async function getAccuracyMetricsAction(): Promise<
   ActionState<AccuracyMetricsData>
 > {
   try {
+    // Use UTC dates consistently
     const now = new Date()
+    const utcNow = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds()
+    ))
 
-    // Define date ranges for KPI calculations
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    // Define date ranges for KPI calculations in UTC
+    const twentyFourHoursAgo = new Date(utcNow.getTime() - 24 * 60 * 60 * 1000)
+    const sevenDaysAgo = new Date(utcNow.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const thirtyDaysAgo = new Date(utcNow.getTime() - 30 * 24 * 60 * 60 * 1000)
 
     // Helper function to fetch average accuracy for a given period
     const fetchAverageAccuracy = async (
       startDate: Date,
       endDate: Date // Exclusive end date
     ): Promise<number | null> => {
+      console.log(`Fetching accuracy for period: ${startDate.toISOString()} to ${endDate.toISOString()}`)
+
       const result = await db
         .select({
           // Drizzle's avg function returns a string for numeric types, or null
@@ -99,13 +110,15 @@ export async function getAccuracyMetricsAction(): Promise<
         .where(
           and(
             isNotNull(predictionsTable.accuracy), // Only consider records where accuracy has been calculated
-            gte(predictionsTable.created_at, startDate),
-            lt(predictionsTable.created_at, endDate)
+            gte(predictionsTable.prediction_end_timestamp, startDate.toISOString()),
+            lt(predictionsTable.prediction_end_timestamp, endDate.toISOString())
           )
         )
         .execute() // Use execute() for custom selections not directly mapping to findFirst/findMany
 
       const average = result[0]?.averageAccuracy
+      console.log(`Average accuracy result:`, average)
+
       // parseFloat(null) results in NaN, so check if average is a valid string first
       if (average && !isNaN(parseFloat(average))) {
         return parseFloat(parseFloat(average).toFixed(2)) // Round to 2 decimal places
@@ -114,9 +127,15 @@ export async function getAccuracyMetricsAction(): Promise<
     }
 
     // Fetch KPI metrics
-    const dailyAccuracy = await fetchAverageAccuracy(twentyFourHoursAgo, now)
-    const weeklyAccuracy = await fetchAverageAccuracy(sevenDaysAgo, now)
-    const monthlyAccuracy = await fetchAverageAccuracy(thirtyDaysAgo, now)
+    const dailyAccuracy = await fetchAverageAccuracy(twentyFourHoursAgo, utcNow)
+    const weeklyAccuracy = await fetchAverageAccuracy(sevenDaysAgo, utcNow)
+    const monthlyAccuracy = await fetchAverageAccuracy(thirtyDaysAgo, utcNow)
+
+    console.log('Accuracy KPI metrics:', {
+      daily: dailyAccuracy,
+      weekly: weeklyAccuracy,
+      monthly: monthlyAccuracy
+    })
 
     const kpiMetrics: KpiMetrics = {
       daily: dailyAccuracy,
@@ -128,8 +147,8 @@ export async function getAccuracyMetricsAction(): Promise<
     // Group by day and calculate average accuracy for each day
     const dailyTrendResult = await db
       .select({
-        // Truncate created_at to the day, ensure it's treated as string for consistent key
-        day: sql<string>`DATE_TRUNC('day', ${predictionsTable.created_at})`.as(
+        // Truncate prediction_end_timestamp to the day, ensure it's treated as string for consistent key
+        day: sql<string>`DATE_TRUNC('day', ${predictionsTable.prediction_end_timestamp})::text`.as(
           "day_bucket"
         ),
         averageAccuracy: avg(predictionsTable.accuracy),
@@ -138,13 +157,15 @@ export async function getAccuracyMetricsAction(): Promise<
       .where(
         and(
           isNotNull(predictionsTable.accuracy),
-          gte(predictionsTable.created_at, thirtyDaysAgo),
-          lt(predictionsTable.created_at, now)
+          gte(predictionsTable.prediction_end_timestamp, thirtyDaysAgo.toISOString()),
+          lt(predictionsTable.prediction_end_timestamp, utcNow.toISOString())
         )
       )
       .groupBy(sql`day_bucket`) // Group by the truncated day
       .orderBy(sql`day_bucket ASC`) // Order by day ascending for the chart
       .execute()
+
+    console.log('Daily trend results:', dailyTrendResult)
 
     const trendDataPoints: TrendPoint[] = dailyTrendResult
       .map((row) => {
@@ -155,11 +176,13 @@ export async function getAccuracyMetricsAction(): Promise<
             : null
 
         if (row.day && avgAcc !== null) {
+          const date = new Date(row.day)
           return {
             // Format date string for X-axis, e.g., "Jan 15"
-            x: new Date(row.day).toLocaleDateString("en-US", {
+            x: date.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
+              timeZone: "UTC" // Ensure consistent timezone display
             }),
             y: avgAcc,
           }
@@ -168,12 +191,19 @@ export async function getAccuracyMetricsAction(): Promise<
       })
       .filter((point): point is TrendPoint => point !== null) // Remove any null entries
 
+    console.log('Daily trend data points:', trendDataPoints)
+
     const trendChartData: AccuracyChartData[] = [
       {
         id: "Daily Accuracy", // Nivo series ID
         data: trendDataPoints,
       },
     ]
+
+    console.log('Final accuracy metrics data:', {
+      kpiMetrics,
+      trendData: trendChartData
+    })
 
     return {
       isSuccess: true,

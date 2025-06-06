@@ -30,7 +30,9 @@ import PredictionCard from "@/app/(main)/_components/prediction-card"
 import { AlertTriangle } from "lucide-react"
 
 export async function PredictionsDisplay() {
+  console.log("PredictionsDisplay: Starting to fetch predictions...")
   const result = await getLatestPredictionsAction()
+  console.log("PredictionsDisplay: Fetch result:", JSON.stringify(result, null, 2))
 
   if (!result.isSuccess) {
     // Handle the case where the action itself failed (e.g., database connection error)

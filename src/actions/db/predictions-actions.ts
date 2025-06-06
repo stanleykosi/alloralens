@@ -54,12 +54,7 @@ export async function createPredictionAction(
   data: InsertPrediction
 ): Promise<ActionState<SelectPrediction>> {
   try {
-    // Ensure prediction_end_timestamp is a Date object before insertion if it's not already.
-    // Drizzle with pg driver expects Date objects for timestamp columns with mode: "date".
-    if (typeof data.prediction_end_timestamp === 'string') {
-      data.prediction_end_timestamp = new Date(data.prediction_end_timestamp);
-    }
-
+    // No need to convert timestamps since we're using mode: "string"
     const [newPrediction] = await db
       .insert(predictionsTable)
       .values(data)
@@ -117,15 +112,19 @@ export async function getLatestPredictionsAction(): Promise<
   ActionState<LatestPredictionsData>
 > {
   try {
+    console.log("getLatestPredictionsAction: Starting database queries...")
+
     const fiveMinPrediction = await db.query.predictionsTable.findFirst({
       where: eq(predictionsTable.prediction_type, predictionTypeEnum.enumValues[0]), // '5-min'
       orderBy: [desc(predictionsTable.created_at)],
     })
+    console.log("getLatestPredictionsAction: 5-min prediction result:", fiveMinPrediction)
 
     const eightHourPrediction = await db.query.predictionsTable.findFirst({
       where: eq(predictionsTable.prediction_type, predictionTypeEnum.enumValues[1]), // '8-hour'
       orderBy: [desc(predictionsTable.created_at)],
     })
+    console.log("getLatestPredictionsAction: 8-hour prediction result:", eightHourPrediction)
 
     return {
       isSuccess: true,
@@ -175,7 +174,7 @@ export async function getMaturePredictionsForUpdateAction(): Promise<
       .from(predictionsTable)
       .where(
         and(
-          lt(predictionsTable.prediction_end_timestamp, new Date()),
+          lt(predictionsTable.prediction_end_timestamp, new Date().toISOString()),
           isNull(predictionsTable.accuracy)
         )
       )
@@ -239,9 +238,8 @@ export async function updatePredictionWithAccuracyAction(
     const updateData = {
       actual_price: String(data.actual_price),
       accuracy: String(data.accuracy),
-      updated_at: new Date(), // Explicitly set updated_at
+      updated_at: new Date().toISOString(), // Convert to ISO string for timestamp
     };
-
 
     const [updatedPrediction] = await db
       .update(predictionsTable)
@@ -261,8 +259,7 @@ export async function updatePredictionWithAccuracyAction(
       message: "Prediction updated with accuracy successfully.",
       data: updatedPrediction,
     }
-  } catch (error)
- {
+  } catch (error) {
     console.error(`Error updating prediction with ID ${id}:`, error)
     return {
       isSuccess: false,

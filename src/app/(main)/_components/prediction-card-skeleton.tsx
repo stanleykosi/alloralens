@@ -55,14 +55,8 @@ export async function PredictionCardSkeleton({
         {/* Placeholder for Predicted Value */}
         <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded-md w-3/4"></div>
 
-        {/* Placeholder for Confidence Interval */}
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded-md w-1/2"></div>
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded-md w-5/6"></div>
-        </div>
-
         {/* Placeholder for Timestamp */}
-        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded-md w-2/3 pt-2"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded-md w-2/3"></div>
       </CardContent>
     </Card>
   )

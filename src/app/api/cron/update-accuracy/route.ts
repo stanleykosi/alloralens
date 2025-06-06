@@ -53,24 +53,21 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const token = authHeader.replace("Bearer ", "")
-  const cronSecret = process.env.CRON_SECRET
+  const token = authHeader.split(" ")[1]
+  const expectedToken = process.env.CRON_SECRET
 
-  if (!cronSecret) {
-    console.error(
-      "Update accuracy cron: CRON_SECRET is not set in environment variables."
-    )
+  if (!expectedToken) {
+    console.error("CRON_SECRET environment variable is not configured.")
     return NextResponse.json(
-      { message: "Server configuration error: CRON_SECRET is missing." },
+      { message: "Server configuration error." },
       { status: 500 }
     )
   }
 
-  if (token !== cronSecret) {
-    console.warn("Update accuracy cron: Invalid cron secret.")
+  if (token !== expectedToken) {
     return NextResponse.json(
-      { message: "Invalid cron secret." },
-      { status: 403 }
+      { message: "Invalid authorization token." },
+      { status: 401 }
     )
   }
 
@@ -113,20 +110,35 @@ export async function GET(request: NextRequest) {
 
     for (const prediction of predictionsToUpdate) {
       try {
-        // Fetch actual price from CoinGecko for the prediction's end timestamp
+        // Ensure prediction_end_timestamp is in UTC
         if (!prediction.prediction_end_timestamp) {
-            const errorMsg = `Prediction ID ${prediction.id} is missing prediction_end_timestamp. Skipping.`;
-            console.warn(`Update accuracy cron: ${errorMsg}`);
-            processingErrors.push({ predictionId: prediction.id, error: errorMsg });
-            failedCount++;
-            continue;
+          const errorMsg = `Prediction ID ${prediction.id} is missing prediction_end_timestamp. Skipping.`
+          console.warn(`Update accuracy cron: ${errorMsg}`)
+          processingErrors.push({ predictionId: prediction.id, error: errorMsg })
+          failedCount++
+          continue
         }
 
-        const priceResult = await fetchBtcPriceAtTimestampAction(
-          prediction.prediction_end_timestamp
-        )
+        // Parse the timestamp string to a UTC Date object
+        const endTimestamp = new Date(prediction.prediction_end_timestamp)
+
+        // [NEW] Guardrail: Check if the prediction's end time is still in the future.
+        // This prevents calls to CoinGecko for invalid (future) dates, which would
+        // result in a 400 Bad Request. This is a defense against the upstream
+        // issue where prediction end times are being set incorrectly.
+        if (endTimestamp > new Date()) {
+          const errorMsg = `Prediction ID ${prediction.id} has a future end_timestamp (${endTimestamp.toISOString()}) and will be skipped. This indicates an issue with prediction creation.`
+          console.warn(`Update accuracy cron: ${errorMsg}`)
+          processingErrors.push({ predictionId: prediction.id, error: errorMsg })
+          failedCount++
+          continue
+        }
+
+        console.log(`Processing prediction ID ${prediction.id} with end timestamp: ${endTimestamp.toISOString()}`)
+
+        const priceResult = await fetchBtcPriceAtTimestampAction(endTimestamp)
         if (!priceResult.isSuccess) {
-          const errorMsg = `Failed to fetch price for prediction ID ${prediction.id} (end time: ${prediction.prediction_end_timestamp.toISOString()}): ${priceResult.message}`
+          const errorMsg = `Failed to fetch price for prediction ID ${prediction.id} (end time: ${endTimestamp.toISOString()}): ${priceResult.message}`
           console.warn(`Update accuracy cron: ${errorMsg}`)
           processingErrors.push({ predictionId: prediction.id, error: errorMsg })
           failedCount++
@@ -185,10 +197,10 @@ export async function GET(request: NextRequest) {
       )
     }
     if (failedCount > 0 && updatedCount === 0) {
-        return NextResponse.json(
-            { message: summaryMessage, errors: processingErrors },
-            { status: 500 } // All failed
-        )
+      return NextResponse.json(
+        { message: summaryMessage, errors: processingErrors },
+        { status: 500 } // All failed
+      )
     }
 
     return NextResponse.json({ message: summaryMessage }, { status: 200 })

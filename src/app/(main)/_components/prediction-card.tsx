@@ -1,17 +1,16 @@
 /**
  * @description
  * This client component (`"use client"`) is responsible for displaying a single
- * Bitcoin price prediction from the Allora network. It presents the predicted value,
- * associated confidence interval, and the timestamp of when the prediction was generated.
+ * Bitcoin price prediction from the Allora network. It presents the predicted value
+ * and the timestamp of when the prediction was generated.
  * The component is designed to be visually appealing, fitting the modern aesthetic
  * of the AlloraLens application, and includes subtle animations using Framer Motion.
  *
  * Key features:
  * - Displays prediction title (e.g., "5-Minute Prediction").
  * - Shows the predicted Bitcoin price, formatted as currency.
- * - Presents the confidence interval as a range (lower to upper bound).
  * - Indicates the time the prediction was generated.
- * - Handles cases where prediction data or confidence intervals might be unavailable.
+ * - Handles cases where prediction data might be unavailable.
  * - Uses Framer Motion for a subtle hover effect.
  * - Styled with Tailwind CSS and Shadcn UI's Card component.
  *
@@ -31,7 +30,6 @@
  * @notes
  * - Currency formatting uses `Intl.NumberFormat`.
  * - Date formatting uses `toLocaleString`.
- * - Confidence intervals are displayed if both lower and upper bounds are valid numbers.
  */
 "use client"
 
@@ -44,7 +42,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import type { SelectPrediction } from "@/db/schema"
-import { DollarSign, Activity, Clock, AlertTriangle } from "lucide-react"
+import { DollarSign, Clock, AlertTriangle } from "lucide-react"
 
 interface PredictionCardProps {
   title: string
@@ -80,7 +78,6 @@ export default function PredictionCard({
         day: "numeric",
         hour: "numeric",
         minute: "2-digit",
-        // second: "2-digit", // Hiding seconds for a cleaner look
         hour12: true,
       })
     } catch (e) {
@@ -131,21 +128,6 @@ export default function PredictionCard({
                 </div>
                 <p className="text-3xl lg:text-4xl font-bold font-mono text-allora-primary-light dark:text-allora-primary-dark">
                   {formatCurrency(prediction.predicted_value)}
-                </p>
-              </div>
-
-              <div>
-                <div className="flex items-center text-sm text-muted-foreground mb-1">
-                  <Activity className="w-4 h-4 mr-2 shrink-0" />
-                  <span>Confidence Interval</span>
-                </div>
-                <p className="text-md font-mono">
-                  {prediction.confidence_interval_lower &&
-                  prediction.confidence_interval_upper &&
-                  !isNaN(Number(prediction.confidence_interval_lower)) &&
-                  !isNaN(Number(prediction.confidence_interval_upper))
-                    ? `${formatCurrency(prediction.confidence_interval_lower)} - ${formatCurrency(prediction.confidence_interval_upper)}`
-                    : "Not available"}
                 </p>
               </div>
 

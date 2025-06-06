@@ -53,24 +53,24 @@ export const predictionsTable = pgTable(
     confidence_interval_lower: numeric("confidence_interval_lower"),
     prediction_end_timestamp: timestamp("prediction_end_timestamp", {
       withTimezone: true,
-      mode: "date",
+      mode: "string",
     }).notNull(),
     actual_price: numeric("actual_price"),
     accuracy: numeric("accuracy", { precision: 5, scale: 2 }),
     raw_inference_data: jsonb("raw_inference_data"),
     created_at: timestamp("created_at", {
       withTimezone: true,
-      mode: "date",
+      mode: "string",
     })
       .defaultNow()
       .notNull(),
     updated_at: timestamp("updated_at", {
       withTimezone: true,
-      mode: "date",
+      mode: "string",
     })
       .defaultNow()
       .notNull()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (table) => {
     return {

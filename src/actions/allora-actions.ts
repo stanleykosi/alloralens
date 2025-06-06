@@ -27,6 +27,9 @@ import {
 } from "@/actions/db/predictions-actions"
 import { predictionTypeEnum, type InsertPrediction } from "@/db/schema"
 import type { ActionState } from "@/types"
+import { db } from "@/db/db"
+import { predictionsTable } from "@/db/schema"
+import { and, eq } from "drizzle-orm"
 
 interface AlloraFetchConfig {
   timeframe: PriceInferenceTimeframe
@@ -46,6 +49,23 @@ const topicsToFetch: AlloraFetchConfig[] = [
     durationMs: 8 * 60 * 60 * 1000, // 8 hours in milliseconds
   },
 ]
+
+// Helper function to normalize prediction values
+function normalizePredictionValue(value: string | number): string {
+  // The API returns values that need to be normalized to actual BTC price
+  // Example: "103677.444932" is the normalized value we want
+  const strValue = value.toString()
+
+  // Check if the value is already normalized in the inference data
+  if (strValue.includes('.')) {
+    return parseFloat(strValue).toFixed(2)
+  }
+
+  // If not normalized, convert from raw format
+  // Move decimal point to get actual BTC price
+  const normalizedValue = parseFloat(strValue) / 100000000
+  return normalizedValue.toFixed(2)
+}
 
 /**
  * @function fetchAndStoreAlloraPredictionsAction
@@ -132,29 +152,69 @@ export async function fetchAndStoreAlloraPredictionsAction(): Promise<
       }
 
       const inferenceData = inference.inference_data
-      const predictionTimestamp = new Date(inferenceData.timestamp * 1000) // SDK timestamp is in seconds
-      const predictionEndTimestamp = new Date(
-        predictionTimestamp.getTime() + config.durationMs
+
+      // Use UTC dates consistently
+      const now = new Date()
+      const utcNow = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          now.getUTCHours(),
+          now.getUTCMinutes(),
+          now.getUTCSeconds()
+        )
       )
 
-      // Extract confidence intervals. The SDK provides an array of strings.
-      // Assuming the array structure from the sample response like:
-      // [p2.28, p15.87, p50, p84.13, p97.72]
-      // We'll take the first as lower and last as upper for simplicity.
-      // This might need adjustment based on exact SDK output or business logic for confidence.
+      const predictionEndTimestamp = new Date(utcNow.getTime() + config.durationMs)
+
+      console.log(`Creating prediction with timestamps:`)
+      console.log(`- Current time (UTC): ${utcNow.toISOString()}`)
+      console.log(`- End time (UTC): ${predictionEndTimestamp.toISOString()}`)
+
+      // Check if we already have this prediction
+      const existingPrediction = await db.query.predictionsTable.findFirst({
+        where: and(
+          eq(predictionsTable.prediction_type, config.type),
+          eq(predictionsTable.prediction_end_timestamp, predictionEndTimestamp.toISOString())
+        ),
+      })
+
+      if (existingPrediction) {
+        console.log(
+          `Prediction already exists for timeframe ${config.timeframe} and end timestamp ${predictionEndTimestamp.toISOString()}`
+        )
+        results.push({ timeframe: config.timeframe, success: true })
+        continue
+      }
+
+      // Normalize the prediction value
+      const normalizedPrediction = normalizePredictionValue(inferenceData.network_inference)
+      console.log(`Normalized prediction value: ${normalizedPrediction} (original: ${inferenceData.network_inference})`)
+
+      // Extract and normalize confidence intervals
       const ciValues = inferenceData.confidence_interval_values
-      const lowerBound = ciValues && ciValues.length > 0 ? ciValues[0] : null
-      const upperBound =
-        ciValues && ciValues.length > 0 ? ciValues[ciValues.length - 1] : null
+      const lowerBound = ciValues && ciValues.length > 0
+        ? normalizePredictionValue(ciValues[0])
+        : null
+      const upperBound = ciValues && ciValues.length > 0
+        ? normalizePredictionValue(ciValues[ciValues.length - 1])
+        : null
+
+      // Create a copy of the inference data with corrected timestamp
+      const inferenceDataWithCorrectTimestamp = {
+        ...inferenceData,
+        timestamp: Math.floor(utcNow.getTime() / 1000) // Convert current UTC time to Unix timestamp
+      }
 
       const insertData: InsertPrediction = {
         prediction_type: config.type,
-        predicted_value: inferenceData.network_inference,
+        predicted_value: normalizedPrediction,
         confidence_interval_lower: lowerBound,
         confidence_interval_upper: upperBound,
-        prediction_end_timestamp: predictionEndTimestamp,
-        raw_inference_data: inferenceData as any, // Store the full inference_data part
-        created_at: predictionTimestamp,
+        prediction_end_timestamp: predictionEndTimestamp.toISOString(),
+        raw_inference_data: inferenceDataWithCorrectTimestamp as any,
+        created_at: utcNow.toISOString(),
       }
 
       const storeResult = await createPredictionAction(insertData)
@@ -195,7 +255,7 @@ export async function fetchAndStoreAlloraPredictionsAction(): Promise<
     }
   } else if (results.length === 0) {
     return {
-      isSuccess: false, // Or true if no topics is not an error
+      isSuccess: false,
       message: "No Allora timeframes configured or processed.",
     }
   } else {
