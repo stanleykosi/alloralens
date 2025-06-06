@@ -303,8 +303,8 @@ export default function AccuracyCharts({
                       backdropFilter: "blur(4px)",
                       padding: "8px 12px",
                       border: `1px solid ${effectiveTheme === "dark"
-                          ? "rgba(55, 65, 81, 0.9)"
-                          : "rgba(224, 231, 255, 0.9)"
+                        ? "rgba(55, 65, 81, 0.9)"
+                        : "rgba(224, 231, 255, 0.9)"
                         }`,
                       borderRadius: "6px",
                       fontFamily: "var(--font-geist-sans)",
