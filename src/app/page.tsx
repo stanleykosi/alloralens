@@ -33,11 +33,11 @@
 "use server"
 
 import { Suspense } from "react"
-import { PredictionsDisplay } from "@/app/(main)/_components/predictions-display"
-import { PredictionsDisplaySkeleton } from "@/app/(main)/_components/predictions-display-skeleton"
+import { getAccuracyMetricsAction } from "@/actions/db/accuracy-actions"
 import AccuracyCharts from "@/app/(main)/_components/accuracy-charts"
 import { AccuracyChartsSkeleton } from "@/app/(main)/_components/accuracy-charts-skeleton"
-import { getAccuracyMetricsAction } from "@/actions/db/accuracy-actions"
+import { PredictionsDisplay } from "@/app/(main)/_components/predictions-display"
+import { PredictionsDisplaySkeleton } from "@/app/(main)/_components/predictions-display-skeleton"
 import { AlertTriangle } from "lucide-react"
 
 /**
@@ -88,26 +88,28 @@ async function AccuracySection() {
 export default async function MainPage() {
   return (
     <div className="space-y-8">
-      {/* Predictions Section */}
-      {/* This section displays the latest 5-minute and 8-hour Bitcoin predictions. */}
-      {/* It uses Suspense to show a skeleton loader while fetching data. */}
-      <Suspense fallback={<PredictionsDisplaySkeleton />}>
-        <PredictionsSection />
-      </Suspense>
+      {/* Page Title */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-allora-foreground-light dark:text-allora-foreground-dark sm:text-4xl">
+          Allora Network Dashboard
+        </h1>
+        <p className="mt-2 text-lg leading-8 text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
+          Real-time Bitcoin Price Predictions and Performance Analytics
+        </p>
+      </div>
 
-      {/* Accuracy Metrics Section */}
-      {/* This section displays KPI cards for accuracy (24h, 7d, 30d) and a trend chart. */}
-      {/* It also uses Suspense with a dedicated skeleton for a better loading experience. */}
-      <Suspense fallback={<AccuracyChartsSkeleton />}>
-        <AccuracySection />
-      </Suspense>
+      {/* Main Content Container */}
+      <div className="bg-allora-card-light dark:bg-allora-card-dark border border-allora-border-light dark:border-allora-border-dark rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 space-y-8">
+        {/* Predictions Section */}
+        <Suspense fallback={<PredictionsDisplaySkeleton />}>
+          <PredictionsSection />
+        </Suspense>
 
-      {/* Placeholder for future Informetrics section */}
-      {/* 
-      <Suspense fallback={<InformetricsSkeleton />}> // To be created
-        <InformetricsSection /> // To be created
-      </Suspense> 
-      */}
+        {/* Accuracy Metrics Section */}
+        <Suspense fallback={<AccuracyChartsSkeleton />}>
+          <AccuracySection />
+        </Suspense>
+      </div>
     </div>
   )
 }

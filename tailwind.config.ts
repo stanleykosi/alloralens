@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss"
+import { fontFamily } from "tailwindcss/defaultTheme"
 
 const config = {
   darkMode: "class",
@@ -18,6 +19,10 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
+        mono: ["var(--font-geist-mono)", ...fontFamily.mono],
+      },
       colors: {
         border: "hsl(var(--border))", // Base for Shadcn
         input: "hsl(var(--input))", // Base for Shadcn
@@ -52,33 +57,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // AlloraLens Specific Palette
+        // Custom color palette for a modern infometrics look
         allora: {
-          background: {
-            light: "#FFFFFF",
-            dark: "#121212",
-          },
-          foreground: {
-            light: "#222222",
-            dark: "#E0E0E0",
-          },
-          card: {
-            light: "#F7F7F7",
-            dark: "#1E1E1E",
-          },
-          border: {
-            light: "#DDDDDD",
-            dark: "#333333",
-          },
-          primary: {
-            light: "#008489", // Teal/Green
-            dark: "#00A699",
-          },
+          "background-light": "#F8F9FA", // Off-white
+          "background-dark": "#121212", // Very dark grey
+          "card-light": "#FFFFFF", // White
+          "card-dark": "#1E1E1E", // Darker grey
+          "border-light": "#E9ECEF", // Light grey border
+          "border-dark": "#2D2D2D", // Dark grey border
+          "foreground-light": "#212529", // Dark text
+          "foreground-dark": "#E9ECEF", // Light text
+          "primary-light": "#007BFF", // Bright blue
+          "primary-dark": "#00A699", // Teal
         }
-      },
-      fontFamily: {
-        sans: ["var(--font-geist-sans)"],
-        mono: ["var(--font-geist-mono)"],
       },
       borderRadius: { // Base for Shadcn
         lg: "var(--radius)",

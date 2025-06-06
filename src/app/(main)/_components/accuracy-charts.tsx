@@ -250,7 +250,7 @@ export default function AccuracyCharts({
           <h3 className="text-lg font-medium mb-1 text-allora-foreground-light dark:text-allora-foreground-dark">
             Daily Accuracy Trend
           </h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-allora-foreground-light/80 dark:text-allora-foreground-dark/80 mb-4">
             Average accuracy over the last 30 days.
           </p>
           {hasTrendData ? (
@@ -300,13 +300,22 @@ export default function AccuracyCharts({
                   <div
                     style={{
                       background:
-                        effectiveTheme === "dark" ? "#1E1E1E" : "#F7F7F7",
+                        effectiveTheme === "dark"
+                          ? "rgba(30, 30, 30, 0.85)"
+                          : "rgba(255, 255, 255, 0.85)",
+                      backdropFilter: "blur(4px)",
                       padding: "8px 12px",
-                      border: `1px solid ${effectiveTheme === "dark" ? "#333333" : "#DDDDDD"}`,
-                      borderRadius: "4px",
+                      border: `1px solid ${effectiveTheme === "dark"
+                          ? "rgba(45, 45, 45, 0.9)"
+                          : "rgba(233, 236, 239, 0.9)"
+                        }`,
+                      borderRadius: "6px",
                       fontFamily: "var(--font-geist-sans)",
                       fontSize: "12px",
-                      color: effectiveTheme === "dark" ? "#E0E0E0" : "#222222",
+                      color:
+                        effectiveTheme === "dark"
+                          ? "rgb(233, 236, 239)"
+                          : "rgb(33, 37, 41)",
                     }}
                   >
                     <strong>{point.serieId}</strong>
@@ -316,46 +325,18 @@ export default function AccuracyCharts({
                     Accuracy: {Number(point.data.y).toFixed(2)}%
                   </div>
                 )}
-                legends={[
-                  {
-                    anchor: "bottom-right",
-                    direction: "column",
-                    justify: false,
-                    translateX: 100, // This might push legend off-screen, adjust if needed or remove
-                    translateY: 0,
-                    itemsSpacing: 0,
-                    itemDirection: "left-to-right",
-                    itemWidth: 80,
-                    itemHeight: 20,
-                    itemOpacity: 0.75,
-                    symbolSize: 12,
-                    symbolShape: "circle",
-                    symbolBorderColor: "rgba(0, 0, 0, .5)",
-                    effects: [
-                      {
-                        on: "hover",
-                        style: {
-                          itemBackground: "rgba(0, 0, 0, .03)",
-                          itemOpacity: 1,
-                        },
-                      },
-                    ],
-                    toggleSerie: true, // Allows hiding series by clicking legend (if multiple series)
-                  },
-                ]}
+                legends={[]} // Hide legends, as we only have one series
               />
             </div>
           ) : (
-            <div className="h-[350px] sm:h-[400px] w-full flex flex-col items-center justify-center border-2 border-dashed border-allora-border-light dark:border-allora-border-dark rounded-lg p-8 text-center">
-              <AlertCircle className="w-12 h-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">
-                Not Enough Data
+            <div className="h-[350px] sm:h-[400px] w-full flex flex-col items-center justify-center bg-allora-background-light dark:bg-allora-background-dark rounded-lg">
+              <AlertCircle className="w-12 h-12 text-allora-foreground-light/30 dark:text-allora-foreground-dark/30" />
+              <p className="mt-4 text-lg font-medium text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
+                No Trend Data Available
               </p>
-              <p className="text-sm text-muted-foreground">
-                There isn't enough historical accuracy data to display the
-                trend chart yet.
-                <br />
-                Please check back later as more data is collected.
+              <p className="text-sm text-allora-foreground-light/60 dark:text-allora-foreground-dark/60">
+                Accuracy data for the last 30 days will appear here once
+                available.
               </p>
             </div>
           )}

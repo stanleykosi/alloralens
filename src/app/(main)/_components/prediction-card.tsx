@@ -55,95 +55,62 @@ export default function PredictionCard({
   prediction,
   className,
 }: PredictionCardProps) {
-  // Helper to format currency values
-  const formatCurrency = (value: string | number | null | undefined) => {
-    if (value === null || value === undefined) return "N/A"
-    const numValue = Number(value)
-    if (isNaN(numValue)) return "Invalid Value"
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(numValue)
-  }
-
-  // Helper to format timestamp
-  const formatTimestamp = (timestamp: Date | string | null) => {
-    if (!timestamp) return "N/A"
-    try {
-      return new Date(timestamp).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    } catch (e) {
-      return "Invalid Date"
-    }
-  }
-
-  const cardVariants = {
-    hover: {
-      scale: 1.02,
-      transition: { type: "spring", stiffness: 300, damping: 15 },
-    },
-  }
-
   return (
-    <motion.div whileHover="hover" variants={cardVariants} className={className}>
-      <Card
-        className={`
-          bg-allora-card-light dark:bg-allora-card-dark 
-          border-allora-border-light dark:border-allora-border-dark 
-          shadow-lg rounded-xl p-6 h-full flex flex-col
-          text-allora-foreground-light dark:text-allora-foreground-dark
-        `}
-      >
-        <CardHeader className="p-0 mb-4">
-          <CardTitle className="text-xl lg:text-2xl font-semibold">
-            {title}
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="p-0 flex-grow space-y-4">
-          {!prediction ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <AlertTriangle className="w-12 h-12 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">
-                No prediction data available.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Awaiting first prediction from the network...
+    <motion.div
+      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+      className={`
+        bg-gradient-to-br from-allora-card-light to-white dark:from-allora-card-dark dark:to-gray-900
+        border border-allora-border-light dark:border-allora-border-dark
+        shadow-md rounded-xl p-6 transition-all duration-300 ease-in-out
+        hover:shadow-lg hover:border-allora-primary-light dark:hover:border-allora-primary-dark
+        ${className}
+      `}
+    >
+      <CardHeader className="p-0">
+        <CardTitle className="text-xl font-semibold text-allora-foreground-light dark:text-allora-foreground-dark">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 mt-4">
+        {prediction ? (
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center text-sm text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
+                <DollarSign className="w-4 h-4 mr-2" />
+                <span>Predicted Price (BTC/USD)</span>
+              </div>
+              <p className="text-4xl font-bold tracking-tight text-allora-primary-light dark:text-allora-primary-dark">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(parseFloat(prediction.predicted_value))}
               </p>
             </div>
-          ) : (
-            <>
-              <div>
-                <div className="flex items-center text-sm text-muted-foreground mb-1">
-                  <DollarSign className="w-4 h-4 mr-2 shrink-0" />
-                  <span>Predicted Price (BTC/USD)</span>
-                </div>
-                <p className="text-3xl lg:text-4xl font-bold font-mono text-allora-primary-light dark:text-allora-primary-dark">
-                  {formatCurrency(prediction.predicted_value)}
-                </p>
+            <div>
+              <div className="flex items-center text-sm text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
+                <Clock className="w-4 h-4 mr-2" />
+                <span>Prediction Generated At</span>
               </div>
-
-              <div>
-                <div className="flex items-center text-sm text-muted-foreground mb-1">
-                  <Clock className="w-4 h-4 mr-2 shrink-0" />
-                  <span>Prediction Generated At</span>
-                </div>
-                <p className="text-sm">
-                  {formatTimestamp(prediction.created_at)}
-                </p>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+              <p className="text-md text-allora-foreground-light dark:text-allora-foreground-dark">
+                {new Date(prediction.created_at).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center py-8">
+            <AlertTriangle className="w-10 h-10 text-allora-foreground-light/50 dark:text-allora-foreground-dark/50 mb-2" />
+            <p className="font-semibold text-allora-foreground-light dark:text-allora-foreground-dark">
+              No Prediction Data
+            </p>
+            <p className="text-sm text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
+              Check back soon for the latest predictions.
+            </p>
+          </div>
+        )}
+      </CardContent>
     </motion.div>
   )
 }
