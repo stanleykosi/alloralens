@@ -22,7 +22,8 @@ export async function GET() {
         {
           message: "CoinGecko API test successful!",
           testDate: oneHourAgo.toISOString(),
-          ...result,
+          success: result.isSuccess,
+          data: result.data,
         },
         { status: 200 }
       )
@@ -32,7 +33,8 @@ export async function GET() {
         {
           message: "CoinGecko API test failed.",
           testDate: oneHourAgo.toISOString(),
-          ...result,
+          success: result.isSuccess,
+          error: result.message,
         },
         { status: 500 }
       )
