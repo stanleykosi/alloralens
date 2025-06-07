@@ -30,7 +30,7 @@
  * - Error handling for `getAccuracyMetricsAction` is done within `AccuracySection`.
  *   `PredictionsDisplay` is expected to handle its internal data fetching errors.
  */
-"use server"
+
 export const dynamic = "force-dynamic";
 import { Suspense } from "react"
 import { getAccuracyMetricsAction } from "@/actions/db/accuracy-actions"
