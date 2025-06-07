@@ -204,6 +204,11 @@ export default function AccuracyCharts({
   const hasTrendData =
     trendData && trendData.length > 0 && trendData[0].data.length > 0
 
+  // Dynamically determine Y-axis min and max for the trend chart
+  const allYValues = trendData[0]?.data.map(point => point.y) || [];
+  const minY = allYValues.length ? Math.floor(Math.min(...allYValues)) : 0;
+  const maxY = allYValues.length ? Math.ceil(Math.max(...allYValues)) : 100;
+
   return (
     <Card
       className={`
@@ -260,8 +265,8 @@ export default function AccuracyCharts({
                 xScale={{ type: "point" }}
                 yScale={{
                   type: "linear",
-                  min: 0,
-                  max: 100,
+                  min: minY === maxY ? minY - 1 : minY,
+                  max: minY === maxY ? maxY + 1 : maxY,
                   stacked: false,
                   reverse: false,
                 }}
