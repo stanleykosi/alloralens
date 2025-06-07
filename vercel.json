@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/update-predictions",
-      "schedule": "*/3 * * * *"
-    },
-    {
-      "path": "/api/cron/update-accuracy",
-      "schedule": "*/3 * * * *"
-    }
-  ]
-}
+{}

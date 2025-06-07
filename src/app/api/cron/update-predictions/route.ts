@@ -1,69 +1,36 @@
 /**
  * @description
- * API Route Handler for a Vercel Cron Job to periodically fetch and store
+ * API Route Handler for a QStash Task to periodically fetch and store
  * Bitcoin price predictions from the Allora Network.
  *
- * This endpoint is designed to be triggered by a scheduled cron job.
- * It ensures that the request is authorized using a secret token
+ * This endpoint is designed to be triggered by a scheduled QStash task.
+ * It uses the `@upstash/qstash/next` wrapper to verify the request signature
  * before proceeding to call the `fetchAndStoreAlloraPredictionsAction`.
  *
- * @method GET
+ * @method POST
  * @path /api/cron/update-predictions
  *
  * @security
- * - Expects an `Authorization` header with a Bearer token.
- * - The token is compared against `process.env.CRON_SECRET`.
+ * - The request is verified by QStash using signature verification.
+ * - `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY` must be set.
  *
  * @dependencies
- * - "next/server": For `NextResponse` and `NextRequest`.
+ * - "next/server": For `NextResponse`.
+ * - "@upstash/qstash/nextjs": For `verifySignature`.
  * - "@/actions/allora-actions": For `fetchAndStoreAlloraPredictionsAction`.
  *
  * @returns
  * - 200 OK: If predictions are fetched and stored successfully.
- * - 401 Unauthorized: If the `Authorization` header is missing or malformed.
- * - 403 Forbidden: If the provided cron secret is invalid.
- * - 500 Internal Server Error: If `CRON_SECRET` is not configured on the server,
- *   or if `fetchAndStoreAlloraPredictionsAction` fails.
+ * - 401 Unauthorized: If the QStash signature verification fails.
+ * - 500 Internal Server Error: If `fetchAndStoreAlloraPredictionsAction` fails.
  */
 
-import { NextResponse, type NextRequest } from "next/server"
+import { NextResponse } from "next/server"
+import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
 import { fetchAndStoreAlloraPredictionsAction } from "@/actions/allora-actions"
 
-export async function GET(request: NextRequest) {
-  // 1. Authenticate the request
-  const authHeader = request.headers.get("authorization")
-  if (!authHeader) {
-    console.warn(
-      "Update predictions cron: Missing Authorization header."
-    )
-    return NextResponse.json(
-      { message: "Authorization header is required." },
-      { status: 401 }
-    )
-  }
-
-  const token = authHeader.replace("Bearer ", "")
-  const cronSecret = process.env.CRON_SECRET
-
-  if (!cronSecret) {
-    console.error(
-      "Update predictions cron: CRON_SECRET is not set in environment variables."
-    )
-    return NextResponse.json(
-      { message: "Server configuration error: CRON_SECRET is missing." },
-      { status: 500 }
-    )
-  }
-
-  if (token !== cronSecret) {
-    console.warn("Update predictions cron: Invalid cron secret.")
-    return NextResponse.json(
-      { message: "Invalid cron secret." },
-      { status: 403 }
-    )
-  }
-
-  // 2. Call the server action to fetch and store predictions
+async function handler() {
+  // Call the server action to fetch and store predictions
   try {
     console.log("Update predictions cron: Job started.")
     const result = await fetchAndStoreAlloraPredictionsAction()
@@ -99,6 +66,8 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const POST = verifySignatureAppRouter(handler)
 
 // Note on Vercel Cron Job configuration:
 // This route should be configured in `vercel.json` or through the Vercel dashboard

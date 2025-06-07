@@ -1,24 +1,25 @@
 /**
  * @description
- * API Route Handler for a Vercel Cron Job to periodically:
+ * API Route Handler for a QStash Task to periodically:
  * 1. Find "mature" predictions (those whose end time has passed but accuracy is not yet calculated).
  * 2. Fetch the actual historical Bitcoin price from CoinGecko for each mature prediction's end time.
  * 3. Calculate the prediction's accuracy.
  * 4. Update the prediction record in the database with the actual price and accuracy.
  *
- * This endpoint is designed to be triggered by a scheduled cron job.
- * It ensures that the request is authorized using a secret token
+ * This endpoint is designed to be triggered by a scheduled QStash task.
+ * It uses the `@upstash/qstash/next` wrapper to verify the request signature
  * before proceeding with the accuracy update workflow.
  *
- * @method GET
+ * @method POST
  * @path /api/cron/update-accuracy
  *
  * @security
- * - Expects an `Authorization` header with a Bearer token.
- * - The token is compared against `process.env.CRON_SECRET`.
+ * - The request is verified by QStash using signature verification.
+ * - `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY` must be set.
  *
  * @dependencies
- * - "next/server": For `NextResponse` and `NextRequest`.
+ * - "next/server": For `NextResponse`.
+ * - "@upstash/qstash/next": For `verifySignature`.
  * - "@/actions/db/predictions-actions": For `getMaturePredictionsForUpdateAction` and `updatePredictionWithAccuracyAction`.
  * - "@/actions/coingecko-actions": For `fetchBtcPriceAtTimestampAction`.
  * - "@/lib/math": For `calculateAccuracy`.
@@ -27,13 +28,13 @@
  * @returns
  * - 200 OK: If accuracy updates are processed successfully (or no predictions to update).
  * - 207 Multi-Status: If some predictions were processed successfully but others failed.
- * - 401 Unauthorized: If the `Authorization` header is missing or malformed.
- * - 403 Forbidden: If the provided cron secret is invalid.
- * - 500 Internal Server Error: If `CRON_SECRET` is not configured, or if a critical
- *   step like fetching the initial list of mature predictions fails, or for other unhandled exceptions.
+ * - 401 Unauthorized: If the QStash signature verification fails.
+ * - 500 Internal Server Error: If a critical step like fetching the initial
+ *   list of mature predictions fails, or for other unhandled exceptions.
  */
 
-import { NextResponse, type NextRequest } from "next/server"
+import { NextResponse } from "next/server"
+import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
 import {
   getMaturePredictionsForUpdateAction,
   updatePredictionWithAccuracyAction,
@@ -42,36 +43,8 @@ import { fetchBtcPriceAtTimestampAction } from "@/actions/coingecko-actions"
 import { calculateAccuracy } from "@/lib/math"
 import type { SelectPrediction } from "@/db/schema"
 
-export async function GET(request: NextRequest) {
-  // 1. Authenticate the request
-  const authHeader = request.headers.get("authorization")
-  if (!authHeader) {
-    console.warn("Update accuracy cron: Missing Authorization header.")
-    return NextResponse.json(
-      { message: "Authorization header is required." },
-      { status: 401 }
-    )
-  }
-
-  const token = authHeader.split(" ")[1]
-  const expectedToken = process.env.CRON_SECRET
-
-  if (!expectedToken) {
-    console.error("CRON_SECRET environment variable is not configured.")
-    return NextResponse.json(
-      { message: "Server configuration error." },
-      { status: 500 }
-    )
-  }
-
-  if (token !== expectedToken) {
-    return NextResponse.json(
-      { message: "Invalid authorization token." },
-      { status: 401 }
-    )
-  }
-
-  // 2. Main accuracy update logic
+async function handler() {
+  // Main accuracy update logic
   try {
     console.log("Update accuracy cron: Job started.")
 
@@ -218,16 +191,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Note on Vercel Cron Job configuration:
-// This route should be configured in `vercel.json` or through the Vercel dashboard
-// to run on a schedule (e.g., every 5 minutes).
-// Example `vercel.json` cron configuration:
-// {
-//   "crons": [
-//     {
-//       "path": "/api/cron/update-accuracy",
-//       "schedule": "*/5 * * * *" // Every 5 minutes
-//     }
-//   ]
-// }
-// The CRON_SECRET environment variable must be set in Vercel project settings.
+export const POST = verifySignatureAppRouter(handler)
