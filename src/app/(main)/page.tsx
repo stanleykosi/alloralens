@@ -88,16 +88,6 @@ async function AccuracySection() {
 export default async function MainPage() {
   return (
     <div className="space-y-8">
-      {/* Page Title */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-allora-foreground-light dark:text-allora-foreground-dark sm:text-4xl">
-          Allora Network Dashboard
-        </h1>
-        <p className="mt-2 text-lg leading-8 text-allora-foreground-light/80 dark:text-allora-foreground-dark/80">
-          Real-time Bitcoin Price Predictions and Performance Analytics
-        </p>
-      </div>
-
       {/* Main Content Container */}
       <div className="bg-allora-card-light dark:bg-allora-card-dark backdrop-blur-lg border border-allora-border-light dark:border-allora-border-dark rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Predictions Section */}

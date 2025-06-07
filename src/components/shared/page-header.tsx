@@ -21,15 +21,24 @@
 
 import { ThemeToggle } from "@/components/shared/theme-toggle"
 
-export async function PageHeader() {
+export async function PageHeader({
+  title,
+  children,
+}: {
+  title: string
+  children?: React.ReactNode
+}) {
   return (
     <header className="py-4 px-4 sm:px-6 lg:px-8 border-b border-allora-border-light dark:border-allora-border-dark">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-allora-foreground-light dark:text-allora-foreground-dark">
-          AlloraLens
+          {title}
         </h1>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-4">
+          {children}
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   )
