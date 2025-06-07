@@ -31,7 +31,7 @@
  *   `PredictionsDisplay` is expected to handle its internal data fetching errors.
  */
 "use server"
-
+export const dynamic = "force-dynamic";
 import { Suspense } from "react"
 import { getAccuracyMetricsAction } from "@/actions/db/accuracy-actions"
 import AccuracyCharts from "@/app/(main)/_components/accuracy-charts"
